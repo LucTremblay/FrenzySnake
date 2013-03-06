@@ -31,9 +31,9 @@ public class Snake extends Entity {
 	private final ITextureRegion mTailPartTextureRegion;
 	private Direction mLastMoveDirection;
 
-	// ===========================================================
+	// ========================================================
 	// Constructors
-	// ===========================================================
+	// ========================================================
 
 	public Snake(final Direction pInitialDirection, final int pCellX, final int pCellY, final TiledTextureRegion pHeadTextureRegion, final ITextureRegion pTailPartTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager) {
 		super(0, 0);
