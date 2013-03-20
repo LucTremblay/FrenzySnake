@@ -269,8 +269,8 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		if(snakeHead.getCellX() < 0 || snakeHead.getCellX() >= CELLS_HORIZONTAL || snakeHead.getCellY() < 0 || snakeHead.getCellY() >= CELLS_VERTICAL) {
 			this.onGameOver();
 		} else if(snakeHead.isInSameCell(this.mApple)) {
-			this.mScore += 50;
-			this.mScoreText.setText("Score: " + this.mScore);
+		//	this.mScore += 50;
+		//	this.mScoreText.setText("Score: " + this.mScore);
 			this.mSnake.grow();
 			this.mMunchSound.play();
 			this.setAppleToRandomCell();

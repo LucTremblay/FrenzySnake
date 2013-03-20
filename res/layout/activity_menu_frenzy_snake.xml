@@ -6,22 +6,26 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="#000000"
     tools:context=".MenuFrenzySnake" >
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
-
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/btnNouvellePartie"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="52dp"
-        android:text="@string/newGame" 
-        android:onClick="NewGame"/>
+        android:onClick="NewGame"
+        android:text="@string/newGame" />
+
+    <Button
+        android:id="@+id/btnQuittez"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="42dp"
+        android:onClick="Quittez"
+        android:text="@string/quit" />
 
 </RelativeLayout>

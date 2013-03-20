@@ -41,4 +41,8 @@ public class MenuFrenzySnake extends Activity {
 		 Intent i = new Intent(this, SnakeGameActivity.class);
 		 startActivity(i);
 	}
+	public void Quittez(View view)
+	{
+		finish();
+	}
 }
