@@ -7,13 +7,7 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
-/**
- * (c) 2010 Nicolas Gramlich 
- * (c) 2011 Zynga Inc.
- * 
- * @author Nicolas Gramlich
- * @since 17:11:44 - 09.07.2010
- */
+
 public class Snake extends Entity {
 	// ===========================================================
 	// Constants

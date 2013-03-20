@@ -1,7 +1,8 @@
 package com.luccharles.frenzysnake;
 
 import java.io.IOException;
-
+import android.view.View;
+import android.view.MotionEvent;
 import org.andengine.audio.sound.Sound;
 import org.andengine.audio.sound.SoundFactory;
 import org.andengine.engine.camera.Camera;
@@ -23,7 +24,6 @@ import org.andengine.entity.text.Text;
 import org.andengine.entity.text.TextOptions;
 import org.andengine.entity.util.FPSLogger;
 import org.andengine.input.touch.TouchEvent;
-
 import org.andengine.opengl.font.Font;
 import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.TextureOptions;
@@ -35,12 +35,14 @@ import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.HorizontalAlign;
 import org.andengine.util.debug.Debug;
 import org.andengine.util.math.MathUtils;
-
 import android.graphics.Color;
 import android.opengl.GLES20;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.View.OnTouchListener;
 
-public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeConstants {
+public class FrenzySnakeJeuActivity extends SimpleBaseGameActivity implements SnakeConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -61,9 +63,7 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 
 	private Camera mCamera;
 
-	//private DigitalOnScreenControl mDigitalOnScreenControl;
-	float initialX = 0.0f;
-	float initialY = 0.0f;
+	private DigitalOnScreenControl mDigitalOnScreenControl;
 
 	private Font mFont;
 
@@ -77,10 +77,10 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	private ITextureRegion mBackgroundTextureRegion;
 
 	private BitmapTextureAtlas mOnScreenControlTexture;
-
+	private ITextureRegion mOnScreenControlBaseTextureRegion;
+	private ITextureRegion mOnScreenControlKnobTextureRegion;
 
 	private Scene mScene;
-	
 
 	private Snake mSnake;
 	private Frog mFrog;
@@ -93,6 +93,17 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	protected boolean mGameRunning;
 	private Text mGameOverText;
 
+	// ===========================================================
+	// Constructors
+	// ===========================================================
+
+	// ===========================================================
+	// Getter & Setter
+	// ===========================================================
+
+	// ===========================================================
+	// Methods for/from SuperClass/Interfaces
+	// ===========================================================
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -123,8 +134,8 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		this.mBackgroundTexture.load();
 
 		this.mOnScreenControlTexture = new BitmapTextureAtlas(this.getTextureManager(), 256, 128, TextureOptions.BILINEAR);
-		//this.mOnScreenControlBaseTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mOnScreenControlTexture, this, "onscreen_control_base.png", 0, 0);
-		//this.mOnScreenControlKnobTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mOnScreenControlTexture, this, "onscreen_control_knob.png", 128, 0);
+		this.mOnScreenControlBaseTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mOnScreenControlTexture, this, "onscreen_control_base.png", 0, 0);
+		this.mOnScreenControlKnobTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mOnScreenControlTexture, this, "onscreen_control_knob.png", 128, 0);
 		this.mOnScreenControlTexture.load();
 
 		/* Load all the sounds this game needs. */
@@ -157,7 +168,7 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		this.mScene.getChildByIndex(LAYER_SCORE).attachChild(this.mScoreText);
 
 		/* The Snake. */
-		this.mSnake = new Snake(Direction.RIGHT, CELLS_HORIZONTAL/2, CELLS_VERTICAL / 2, this.mHeadTextureRegion, this.mTailPartTextureRegion, this.getVertexBufferObjectManager());
+		this.mSnake = new Snake(Direction.RIGHT, 0, CELLS_VERTICAL / 2, this.mHeadTextureRegion, this.mTailPartTextureRegion, this.getVertexBufferObjectManager());
 		
 		/* Snake starts with one tail. */
 		this.mSnake.grow();
@@ -169,10 +180,12 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		this.setFrogToRandomCell();
 		this.mScene.getChildByIndex(LAYER_FOOD).attachChild(this.mFrog);
 
-		
 		this.mScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
+			
 			@Override
 			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
+				float initialX = 0.0f;
+				float initialY = 0.0f;
 				float dernierX = 0.0f;
 				float dernierY = 0.0f;
 				float distanceX = 0.0f;
@@ -196,60 +209,81 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 					{
 						if(distanceX > 0)
 						{
-							SnakeGameActivity.this.mSnake.setDirection(Direction.RIGHT);
+							FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.RIGHT);
 						}
 						else
 						{
-							SnakeGameActivity.this.mSnake.setDirection(Direction.LEFT);
+							FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.LEFT);
 						}
 					}
 					else
 					{
 						if(distanceY > 0)
 						{
-							SnakeGameActivity.this.mSnake.setDirection(Direction.DOWN);
+							FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.DOWN);
 						}
 						else
 						{
-							SnakeGameActivity.this.mSnake.setDirection(Direction.UP);
+							FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.UP);
 						}
 					}
 				}
 				
-				return true;
+				return false;
 			}
 		});
 		
-		
+		/* The On-Screen Controls to control the direction of the snake. */
+		this.mDigitalOnScreenControl = new DigitalOnScreenControl(0, CAMERA_HEIGHT - this.mOnScreenControlBaseTextureRegion.getHeight(), this.mCamera, this.mOnScreenControlBaseTextureRegion, this.mOnScreenControlKnobTextureRegion, 0.1f, this.getVertexBufferObjectManager(), new IOnScreenControlListener() {
+			@Override
+			public void onControlChange(final BaseOnScreenControl pBaseOnScreenControl, final float pValueX, final float pValueY) {
+				if(pValueX == 1) {
+					FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.RIGHT);
+				} else if(pValueX == -1) {
+					FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.LEFT);
+				} else if(pValueY == 1) {
+					FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.DOWN);
+				} else if(pValueY == -1) {
+					FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.UP);
+				}
+			}
+		});
+		/* Make the controls semi-transparent. */
+		this.mDigitalOnScreenControl.getControlBase().setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+		this.mDigitalOnScreenControl.getControlBase().setAlpha(0.5f);
+
+		this.mScene.setChildScene(this.mDigitalOnScreenControl);
+
 		/* Make the Snake move every 0.5 seconds. */
 		this.mScene.registerUpdateHandler(new TimerHandler(0.5f, true, new ITimerCallback() {
 			@Override
 			public void onTimePassed(final TimerHandler pTimerHandler) {
-				if(SnakeGameActivity.this.mGameRunning) {
+				if(FrenzySnakeJeuActivity.this.mGameRunning) {
 					try {
-						SnakeGameActivity.this.mSnake.move();
+						FrenzySnakeJeuActivity.this.mSnake.move();
 					} catch (final SnakeSuicideException e) {
-						SnakeGameActivity.this.onGameOver();
+						FrenzySnakeJeuActivity.this.onGameOver();
 					}
 
-					SnakeGameActivity.this.handleNewSnakePosition();
+					FrenzySnakeJeuActivity.this.handleNewSnakePosition();
 				}
 			}
 		}));
 
 		/* The title-text. */
-		/*final Text titleText = new Text(0, 0, this.mFont, "Snake\non a Phone!", new TextOptions(HorizontalAlign.CENTER), this.getVertexBufferObjectManager());
+		final Text titleText = new Text(0, 0, this.mFont, "Snake\non a Phone!", new TextOptions(HorizontalAlign.CENTER), this.getVertexBufferObjectManager());
 		titleText.setPosition((CAMERA_WIDTH - titleText.getWidth()) * 0.5f, (CAMERA_HEIGHT - titleText.getHeight()) * 0.5f);
 		titleText.setScale(0.0f);
 		titleText.registerEntityModifier(new ScaleModifier(2, 0.0f, 1.0f));
-		this.mScene.getChildByIndex(LAYER_SCORE).attachChild(titleText);*/
+		this.mScene.getChildByIndex(LAYER_SCORE).attachChild(titleText);
 
 		/* The handler that removes the title-text and starts the game. */
 		this.mScene.registerUpdateHandler(new TimerHandler(3.0f, new ITimerCallback() {
 			@Override
 			public void onTimePassed(final TimerHandler pTimerHandler) {
-				SnakeGameActivity.this.mScene.unregisterUpdateHandler(pTimerHandler);
-				SnakeGameActivity.this.mGameRunning = true;
+				FrenzySnakeJeuActivity.this.mScene.unregisterUpdateHandler(pTimerHandler);
+				FrenzySnakeJeuActivity.this.mScene.getChildByIndex(LAYER_SCORE).detachChild(titleText);
+				FrenzySnakeJeuActivity.this.mGameRunning = true;
 			}
 		}));
 
@@ -290,14 +324,64 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	}
 
 	private void onGameOver() {
-		//this.mGameOverSound.play();
-		
-		this.mBackgroundTexture = new BitmapTextureAtlas(this.getTextureManager(), 1024, 512);
-		this.mBackgroundTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBackgroundTexture, this, "blue_screen.png", 0, 0);
-		this.mBackgroundTexture.load();
-		
-		this.mScene.getChildByIndex(LAYER_BACKGROUND).attachChild(new Sprite(0, 0, this.mBackgroundTextureRegion, this.getVertexBufferObjectManager()));
-		
+		this.mGameOverSound.play();
+		this.mScene.getChildByIndex(LAYER_SCORE).attachChild(this.mGameOverText);
 		this.mGameRunning = false;
 	}
+
+	// ===========================================================
+	// Inner and Anonymous Classes
+	// ===========================================================
 }
+
+
+class myGestDetec extends SimpleOnGestureListener
+{
+	
+	@Override
+	public boolean onFling(MotionEvent me1, MotionEvent me2, float velociteX, float velociteY)
+	{
+		try
+		{
+			if(Math.abs(me1.getY() - me2.getY()) < Math.abs(me1.getX() - me2.getX()))
+			{
+				if(me1.getX() - me2.getX() > 120 && Math.abs(velociteX) > 200)
+				{
+					return true;
+				}
+				else if (me2.getX() - me1.getX() > 120 && Math.abs(velociteX) > 200)
+				{
+					return true;
+				}
+			}
+			else
+			{
+				if(me1.getY() - me2.getY() > 120 && Math.abs(velociteY) > 200)
+				{
+					return true;
+				}
+				else if (me2.getY() - me1.getY() > 120 && Math.abs(velociteY) > 200)
+				{
+					return true;
+				}
+			}
+			//public 
+//			if(pValueX == 1) {
+			//	
+//			} else if(pValueX == -1) {
+//				FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.LEFT);
+//			} else if(pValueY == 1) {
+//				FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.DOWN);
+//			} else if(pValueY == -1) {
+			//	FrenzySnakeJeuActivity.this.mSnake.setDirection(Direction.UP);
+			//}
+
+		}
+		catch (Exception ex)
+		{
+			return true;
+		}
+		return true;
+	}
+}
+
