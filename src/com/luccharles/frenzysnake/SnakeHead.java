@@ -5,17 +5,7 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 
 public class SnakeHead extends AnimatedCellEntity {
-	// ===========================================================
-	// Constants
-	// ===========================================================
 
-	// ===========================================================
-	// Fields
-	// ===========================================================
-
-	// ===========================================================
-	// Constructors
-	// ===========================================================
 
 	public SnakeHead(final int pCellX, final int pCellY, final TiledTextureRegion pTiledTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager) {
 		super(pCellX, pCellY, CELL_WIDTH, CELL_HEIGHT, pTiledTextureRegion, pVertexBufferObjectManager);
@@ -23,17 +13,6 @@ public class SnakeHead extends AnimatedCellEntity {
 		this.setRotationCenterY(CELL_HEIGHT / 2);
 	}
 
-	// ===========================================================
-	// Getter & Setter
-	// ===========================================================
-
-	// ===========================================================
-	// Methods for/from SuperClass/Interfaces
-	// ===========================================================
-
-	// ===========================================================
-	// Methods
-	// ===========================================================
 
 	public void setRotation(final Direction pDirection) {
 		switch(pDirection) {
@@ -51,8 +30,4 @@ public class SnakeHead extends AnimatedCellEntity {
 				break;
 		}
 	}
-
-	// ===========================================================
-	// Inner and Anonymous Classes
-	// ===========================================================
 }

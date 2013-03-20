@@ -41,10 +41,7 @@ import android.opengl.GLES20;
 import android.view.MotionEvent;
 
 public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeConstants {
-	// ===========================================================
-	// Constants
-	// ===========================================================
-
+	
 	private static final int CAMERA_WIDTH = CELLS_HORIZONTAL * CELL_WIDTH; // 640
 	private static final int CAMERA_HEIGHT = CELLS_VERTICAL * CELL_HEIGHT; // 480
 
@@ -55,13 +52,10 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	private static final int LAYER_SNAKE = LAYER_FOOD + 1;
 	private static final int LAYER_SCORE = LAYER_SNAKE + 1;
 
-	// ===========================================================
-	// Fields
-	// ===========================================================
+	
 
 	private Camera mCamera;
 
-	//private DigitalOnScreenControl mDigitalOnScreenControl;
 	float initialX = 0.0f;
 	float initialY = 0.0f;
 
@@ -70,8 +64,7 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	private BitmapTextureAtlas mBitmapTextureAtlas;
 	private ITextureRegion mTailPartTextureRegion;
 	private TiledTextureRegion mHeadTextureRegion;
-	//private ITextureRegion mHeadTextureRegion;
-	private ITextureRegion mFrogTextureRegion;
+	private ITextureRegion mAppleTextureRegion;
 
 	private BitmapTextureAtlas mBackgroundTexture;
 	private ITextureRegion mBackgroundTextureRegion;
@@ -83,7 +76,7 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	
 
 	private Snake mSnake;
-	private Frog mFrog;
+	private Apple mApple;
 
 	private int mScore = 0;
 	private Text mScoreText;
@@ -105,17 +98,18 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 
 	@Override
 	public void onCreateResources() {
-		/* Load the font we are going to use. */
+
 		FontFactory.setAssetBasePath("font/");
 		this.mFont = FontFactory.createFromAsset(this.getFontManager(), this.getTextureManager(), 512, 512, TextureOptions.BILINEAR, this.getAssets(), "Plok.ttf", 32, true, Color.WHITE);
 		this.mFont.load();
 
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
-		/* Load all the textures this game needs. */
+
+		
 		this.mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 128, 128);
 		this.mHeadTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "snake_head.png", 0, 0, 1, 1);
 		this.mTailPartTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "snake_body_t.png", 96, 0);
-		this.mFrogTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "apple.png", 64, 0);
+		this.mAppleTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "apple.png", 64, 0);
 		this.mBitmapTextureAtlas.load();
 
 		this.mBackgroundTexture = new BitmapTextureAtlas(this.getTextureManager(), 1024, 512);
@@ -123,11 +117,10 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		this.mBackgroundTexture.load();
 
 		this.mOnScreenControlTexture = new BitmapTextureAtlas(this.getTextureManager(), 256, 128, TextureOptions.BILINEAR);
-		//this.mOnScreenControlBaseTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mOnScreenControlTexture, this, "onscreen_control_base.png", 0, 0);
-		//this.mOnScreenControlKnobTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mOnScreenControlTexture, this, "onscreen_control_knob.png", 128, 0);
+	
 		this.mOnScreenControlTexture.load();
 
-		/* Load all the sounds this game needs. */
+
 		try {
 			SoundFactory.setAssetBasePath("mfx/");
 			this.mGameOverSound = SoundFactory.createSoundFromAsset(this.getSoundManager(), this, "game_over.ogg");
@@ -146,28 +139,28 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 			this.mScene.attachChild(new Entity());
 		}
 
-		/* No background color needed as we have a fullscreen background sprite. */
+		
 		this.mScene.setBackgroundEnabled(false);
 		this.mScene.getChildByIndex(LAYER_BACKGROUND).attachChild(new Sprite(0, 0, this.mBackgroundTextureRegion, this.getVertexBufferObjectManager()));
 
-		/* The ScoreText showing how many points the pEntity scored. */
+		
 		this.mScoreText = new Text(5, 5, this.mFont, "Score: 0", "Score: XXXX".length(), this.getVertexBufferObjectManager());
 		this.mScoreText.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		this.mScoreText.setAlpha(0.5f);
-		this.mScene.getChildByIndex(LAYER_SCORE).attachChild(this.mScoreText);
+		//this.mScene.getChildByIndex(LAYER_SCORE).attachChild(this.mScoreText);
 
-		/* The Snake. */
+
 		this.mSnake = new Snake(Direction.RIGHT, CELLS_HORIZONTAL/2, CELLS_VERTICAL / 2, this.mHeadTextureRegion, this.mTailPartTextureRegion, this.getVertexBufferObjectManager());
 		
-		/* Snake starts with one tail. */
+		
 		this.mSnake.grow();
 		this.mScene.getChildByIndex(LAYER_SNAKE).attachChild(this.mSnake);
 
-		/* A frog to approach and eat. */
-		this.mFrog = new Frog(0, 0, this.mFrogTextureRegion, this.getVertexBufferObjectManager());
-		//this.mFrog.animate(1000);
-		this.setFrogToRandomCell();
-		this.mScene.getChildByIndex(LAYER_FOOD).attachChild(this.mFrog);
+		
+		this.mApple = new Apple(0, 0, this.mAppleTextureRegion, this.getVertexBufferObjectManager());
+
+		this.setAppleToRandomCell();
+		this.mScene.getChildByIndex(LAYER_FOOD).attachChild(this.mApple);
 
 		
 		this.mScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
@@ -221,7 +214,7 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		});
 		
 		
-		/* Make the Snake move every 0.5 seconds. */
+	
 		this.mScene.registerUpdateHandler(new TimerHandler(0.5f, true, new ITimerCallback() {
 			@Override
 			public void onTimePassed(final TimerHandler pTimerHandler) {
@@ -237,14 +230,12 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 			}
 		}));
 
-		/* The title-text. */
 		/*final Text titleText = new Text(0, 0, this.mFont, "Snake\non a Phone!", new TextOptions(HorizontalAlign.CENTER), this.getVertexBufferObjectManager());
 		titleText.setPosition((CAMERA_WIDTH - titleText.getWidth()) * 0.5f, (CAMERA_HEIGHT - titleText.getHeight()) * 0.5f);
 		titleText.setScale(0.0f);
 		titleText.registerEntityModifier(new ScaleModifier(2, 0.0f, 1.0f));
 		this.mScene.getChildByIndex(LAYER_SCORE).attachChild(titleText);*/
 
-		/* The handler that removes the title-text and starts the game. */
 		this.mScene.registerUpdateHandler(new TimerHandler(3.0f, new ITimerCallback() {
 			@Override
 			public void onTimePassed(final TimerHandler pTimerHandler) {
@@ -253,11 +244,10 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 			}
 		}));
 
-		/* The game-over text. */
-		this.mGameOverText = new Text(0, 0, this.mFont, "Game\nOver", new TextOptions(HorizontalAlign.CENTER), this.getVertexBufferObjectManager());
+	/*	this.mGameOverText = new Text(0, 0, this.mFont, "Game\nOver", new TextOptions(HorizontalAlign.CENTER), this.getVertexBufferObjectManager());
 		this.mGameOverText.setPosition((CAMERA_WIDTH - this.mGameOverText.getWidth()) * 0.5f, (CAMERA_HEIGHT - this.mGameOverText.getHeight()) * 0.5f);
 		this.mGameOverText.registerEntityModifier(new ScaleModifier(3, 0.1f, 2.0f));
-		this.mGameOverText.registerEntityModifier(new RotationModifier(3, 0, 720));
+		this.mGameOverText.registerEntityModifier(new RotationModifier(3, 0, 720));*/
 
 		return this.mScene;
 	}
@@ -267,12 +257,10 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 
 	}
 
-	// ===========================================================
-	// Methods
-	// ===========================================================
+	
 
-	private void setFrogToRandomCell() {
-		this.mFrog.setCell(MathUtils.random(1, CELLS_HORIZONTAL - 2), MathUtils.random(1, CELLS_VERTICAL - 2));
+	private void setAppleToRandomCell() {
+		this.mApple.setCell(MathUtils.random(1, CELLS_HORIZONTAL - 2), MathUtils.random(1, CELLS_VERTICAL - 2));
 	}
 
 	private void handleNewSnakePosition() {
@@ -280,12 +268,12 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 
 		if(snakeHead.getCellX() < 0 || snakeHead.getCellX() >= CELLS_HORIZONTAL || snakeHead.getCellY() < 0 || snakeHead.getCellY() >= CELLS_VERTICAL) {
 			this.onGameOver();
-		} else if(snakeHead.isInSameCell(this.mFrog)) {
+		} else if(snakeHead.isInSameCell(this.mApple)) {
 			this.mScore += 50;
 			this.mScoreText.setText("Score: " + this.mScore);
 			this.mSnake.grow();
 			this.mMunchSound.play();
-			this.setFrogToRandomCell();
+			this.setAppleToRandomCell();
 		}
 	}
 

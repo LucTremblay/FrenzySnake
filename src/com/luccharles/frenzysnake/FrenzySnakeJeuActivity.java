@@ -83,7 +83,7 @@ public class FrenzySnakeJeuActivity extends SimpleBaseGameActivity implements Sn
 	private Scene mScene;
 
 	private Snake mSnake;
-	private Frog mFrog;
+	private Apple mFrog;
 
 	private int mScore = 0;
 	private Text mScoreText;
@@ -175,7 +175,7 @@ public class FrenzySnakeJeuActivity extends SimpleBaseGameActivity implements Sn
 		this.mScene.getChildByIndex(LAYER_SNAKE).attachChild(this.mSnake);
 
 		/* A frog to approach and eat. */
-		this.mFrog = new Frog(0, 0, this.mFrogTextureRegion, this.getVertexBufferObjectManager());
+		this.mFrog = new Apple(0, 0, this.mFrogTextureRegion, this.getVertexBufferObjectManager());
 		//this.mFrog.animate(1000);
 		this.setFrogToRandomCell();
 		this.mScene.getChildByIndex(LAYER_FOOD).attachChild(this.mFrog);

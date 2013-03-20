@@ -1,16 +1,6 @@
 package com.luccharles.frenzysnake;
 
-/**
- * (c) 2010 Nicolas Gramlich 
- * (c) 2011 Zynga Inc.
- * 
- * @author Nicolas Gramlich
- * @since 23:39:05 - 11.07.2010
- */
 public interface ICellEntity {
-	// ===========================================================
-	// Constants
-	// ===========================================================
 	
 	public abstract int getCellX();
 	public abstract int getCellY();
