@@ -37,16 +37,19 @@ import org.andengine.util.HorizontalAlign;
 import org.andengine.util.debug.Debug;
 import org.andengine.util.math.MathUtils;
 
+import android.R.bool;
 import android.graphics.Color;
 import android.opengl.GLES20;
+import android.os.SystemClock;
 import android.view.MotionEvent;
 
-public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeConstants {
+public class SnakeGameActivity extends SimpleBaseGameActivity implements Constantes {
 	
 	private static final int CAMERA_WIDTH = CELLS_HORIZONTAL * CELL_WIDTH; // 640
 	private static final int CAMERA_HEIGHT = CELLS_VERTICAL * CELL_HEIGHT; // 480
 
 	private static final int LAYER_COUNT = 4;
+	private static final int DOUBLE_CLICK_MAX_DELAY=500;
 
 	private static final int LAYER_BACKGROUND = 0;
 	private static final int LAYER_FOOD = LAYER_BACKGROUND + 1;
@@ -66,7 +69,6 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	private ITextureRegion mTailPartTextureRegion;
 	private TiledTextureRegion mHeadTextureRegion;
 	private ITextureRegion mAppleTextureRegion;
-	private ITextureRegion mSpecialAppleTextureRegion;
 
 	private BitmapTextureAtlas mBackgroundTexture;
 	private ITextureRegion mBackgroundTextureRegion;
@@ -75,9 +77,9 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 
 
 	private Scene mScene;
-	
-
-	private Snake mSnake;
+	private long thisTime,prevTime;
+	private boolean firstTap;
+	private Serpent mSnake;
 	private Apple mApple;
 	
 	private int mScore = 0,mgrow=0;
@@ -152,18 +154,17 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		//this.mScene.getChildByIndex(LAYER_SCORE).attachChild(this.mScoreText);
 
 
-		this.mSnake = new Snake(Direction.RIGHT, CELLS_HORIZONTAL/2, CELLS_VERTICAL / 2, this.mHeadTextureRegion, this.mTailPartTextureRegion, this.getVertexBufferObjectManager());
+		this.mSnake = new Serpent(Direction.RIGHT, CELLS_HORIZONTAL/2, CELLS_VERTICAL / 2, this.mHeadTextureRegion, this.mTailPartTextureRegion, this.getVertexBufferObjectManager());
 		
 		
 		this.mSnake.grow();
 		this.mScene.getChildByIndex(LAYER_SNAKE).attachChild(this.mSnake);
 
 		
-		//this.mApple = new Apple(0, 0, this.mAppleTextureRegion, this.getVertexBufferObjectManager(),1);
+	
 
 		this.setAppleToRandomCell();
-		//this.mScene.getChildByIndex(LAYER_FOOD).attachChild(this.mApple);
-		//this.mScene.getChildByIndex(LAYER_FOOD).detachChild(this.mApple);
+		
 		
 		this.mScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			@Override
@@ -181,36 +182,59 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 				}
 				if (pSceneTouchEvent.getAction() == MotionEvent.ACTION_UP)
 				{
-					dernierX = pSceneTouchEvent.getX();
-					dernierY = pSceneTouchEvent.getY();
 					
-					distanceX = dernierX - initialX;
-					distanceY = dernierY - initialY;
-					
-					if (Math.abs(distanceX) > Math.abs(distanceY))
-					{
-						if(distanceX > 0)
+						dernierX = pSceneTouchEvent.getX();
+						dernierY = pSceneTouchEvent.getY();
+						
+						distanceX = dernierX - initialX;
+						distanceY = dernierY - initialY;
+					if(SnakeGameActivity.this.mGameRunning )
+					{		
+						if (Math.abs(distanceX) > Math.abs(distanceY))
 						{
-							SnakeGameActivity.this.mSnake.setDirection(Direction.RIGHT);
+							if(distanceX > 0)
+							{
+								SnakeGameActivity.this.mSnake.setDirection(Direction.RIGHT);
+							}
+							else
+							{
+								SnakeGameActivity.this.mSnake.setDirection(Direction.LEFT);
+							}
 						}
 						else
 						{
-							SnakeGameActivity.this.mSnake.setDirection(Direction.LEFT);
+							if(distanceY > 0)
+							{
+								SnakeGameActivity.this.mSnake.setDirection(Direction.DOWN);
+							}
+							else
+							{
+								SnakeGameActivity.this.mSnake.setDirection(Direction.UP);
+							}
 						}
 					}
-					else
+					if (distanceX <5 && distanceY<5)
 					{
-						if(distanceY > 0)
-						{
-							SnakeGameActivity.this.mSnake.setDirection(Direction.DOWN);
-						}
-						else
-						{
-							SnakeGameActivity.this.mSnake.setDirection(Direction.UP);
-						}
+						if(firstTap){
+			                thisTime = SystemClock.uptimeMillis();
+			                firstTap = false;
+			            }else{
+			                prevTime = thisTime;
+			                thisTime = SystemClock.uptimeMillis();
+	
+			                if(thisTime > prevTime){
+	
+			                    if((thisTime - prevTime) <= DOUBLE_CLICK_MAX_DELAY){
+			                    	SnakeGameActivity.this.mGameRunning = !SnakeGameActivity.this.mGameRunning;
+			                    }else{
+			                        firstTap = true;
+			                    }
+			                }else{
+			                    firstTap = true;
+			                }
+			            }
 					}
-				}
-				
+				}			
 				return true;
 			}
 		});
@@ -221,15 +245,13 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 			@Override
 			public void onTimePassed(final TimerHandler pTimerHandler) {
 				if(SnakeGameActivity.this.mGameRunning) {
-					try {
-						SnakeGameActivity.this.mSnake.move();
-					} catch (final SnakeSuicideException e) {
+					if (SnakeGameActivity.this.mSnake.move() == false){
 						SnakeGameActivity.this.onGameOver();
 					}
-
 					SnakeGameActivity.this.handleNewSnakePosition();
 				}
 			}
+			
 		}));
 
 		/*final Text titleText = new Text(0, 0, this.mFont, "Snake\non a Phone!", new TextOptions(HorizontalAlign.CENTER), this.getVertexBufferObjectManager());
@@ -283,11 +305,11 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	}
 
 	private void handleNewSnakePosition() {
-		final SnakeHead snakeHead = this.mSnake.getHead();
+		final TeteSerpent snakeHead = this.mSnake.getHead();
 
 		if(snakeHead.getCellX() < 0 || snakeHead.getCellX() >= CELLS_HORIZONTAL || snakeHead.getCellY() < 0 || snakeHead.getCellY() >= CELLS_VERTICAL) {
 			this.onGameOver();
-		} else if(snakeHead.isInSameCell(this.mApple)) {
+		} else if(snakeHead.isInSameCell(this.mApple.getCellX(), this.mApple.getCellY())) {
 		//	this.mScore += 50;
 		//	this.mScoreText.setText("Score: " + this.mScore);
 			this.mSnake.grow();
@@ -314,6 +336,7 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		
 		this.mScene.getChildByIndex(LAYER_BACKGROUND).attachChild(new Sprite(0, 0, this.mBackgroundTextureRegion, this.getVertexBufferObjectManager()));
 		
-		this.mGameRunning = false;
+		
+		SnakeGameActivity.this.mGameRunning = false;
 	}
 }

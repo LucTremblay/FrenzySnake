@@ -1,7 +1,7 @@
 package com.luccharles.frenzysnake;
 
 
-public interface SnakeConstants {
+public interface Constantes {
 	
 	public static final int CELLS_HORIZONTAL = 20;
 	public static final int CELLS_VERTICAL = 12;
