@@ -144,6 +144,8 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements Constan
 		}
 
 		
+		
+		
 		this.mScene.setBackgroundEnabled(false);
 		this.mScene.getChildByIndex(LAYER_BACKGROUND).attachChild(new Sprite(0, 0, this.mBackgroundTextureRegion, this.getVertexBufferObjectManager()));
 

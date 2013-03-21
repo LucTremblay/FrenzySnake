@@ -2,19 +2,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000000"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:background="#000000"
     tools:context=".MenuFrenzySnake" >
 
+        <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/btnNouvellePartie"
+        android:src="@drawable/instruction" />
+    
+    
     <Button
         android:id="@+id/btnNouvellePartie"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="52dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignTop="@+id/imageView1"
+        android:background="@android:drawable/btn_default"
         android:onClick="NewGame"
         android:text="@string/newGame" />
 
@@ -22,9 +32,11 @@
         android:id="@+id/btnQuittez"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="42dp"
+        android:layout_alignBottom="@+id/imageView1"
+        android:layout_alignLeft="@+id/btnNouvellePartie"
+        android:layout_alignRight="@+id/btnNouvellePartie"
+        android:layout_marginBottom="14dp"
+        android:background="@android:drawable/btn_default"
         android:onClick="Quittez"
         android:text="@string/quit" />
 
