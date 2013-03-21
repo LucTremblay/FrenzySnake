@@ -1,6 +1,7 @@
 package com.luccharles.frenzysnake;
 
 import java.io.IOException;
+import java.util.Random;
 
 import org.andengine.audio.sound.Sound;
 import org.andengine.audio.sound.SoundFactory;
@@ -65,6 +66,7 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	private ITextureRegion mTailPartTextureRegion;
 	private TiledTextureRegion mHeadTextureRegion;
 	private ITextureRegion mAppleTextureRegion;
+	private ITextureRegion mSpecialAppleTextureRegion;
 
 	private BitmapTextureAtlas mBackgroundTexture;
 	private ITextureRegion mBackgroundTextureRegion;
@@ -77,8 +79,8 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 
 	private Snake mSnake;
 	private Apple mApple;
-
-	private int mScore = 0;
+	
+	private int mScore = 0,mgrow=0;
 	private Text mScoreText;
 
 	private Sound mGameOverSound;
@@ -157,11 +159,11 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		this.mScene.getChildByIndex(LAYER_SNAKE).attachChild(this.mSnake);
 
 		
-		this.mApple = new Apple(0, 0, this.mAppleTextureRegion, this.getVertexBufferObjectManager());
+		//this.mApple = new Apple(0, 0, this.mAppleTextureRegion, this.getVertexBufferObjectManager(),1);
 
 		this.setAppleToRandomCell();
-		this.mScene.getChildByIndex(LAYER_FOOD).attachChild(this.mApple);
-
+		//this.mScene.getChildByIndex(LAYER_FOOD).attachChild(this.mApple);
+		//this.mScene.getChildByIndex(LAYER_FOOD).detachChild(this.mApple);
 		
 		this.mScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			@Override
@@ -260,7 +262,24 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 	
 
 	private void setAppleToRandomCell() {
+		this.mScene.getChildByIndex(LAYER_FOOD).detachChild(this.mApple);
+		int min = 1;
+		int max = 100;
+
+		Random r = new Random();
+		int random = r.nextInt(max - min + 1) + min;
+		if (random > 80)
+		{		
+			this.mAppleTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "applebonus.png", 64, 0);
+			this.mApple = new Apple(0, 0, this.mAppleTextureRegion, this.getVertexBufferObjectManager(),3);
+		}
+		else{
+			this.mAppleTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "apple.png", 64, 0);
+			this.mApple = new Apple(0, 0, this.mAppleTextureRegion, this.getVertexBufferObjectManager(),1);
+		}
 		this.mApple.setCell(MathUtils.random(1, CELLS_HORIZONTAL - 2), MathUtils.random(1, CELLS_VERTICAL - 2));
+		this.mScene.getChildByIndex(LAYER_FOOD).attachChild(this.mApple);
+		
 	}
 
 	private void handleNewSnakePosition() {
@@ -272,8 +291,17 @@ public class SnakeGameActivity extends SimpleBaseGameActivity implements SnakeCo
 		//	this.mScore += 50;
 		//	this.mScoreText.setText("Score: " + this.mScore);
 			this.mSnake.grow();
+			if(this.mApple.getNoGrow() >1)
+			{
+				this.mgrow = this.mgrow+this.mApple.getNoGrow()-1;
+			}
 			this.mMunchSound.play();
 			this.setAppleToRandomCell();
+		}
+		else if(this.mgrow !=0)
+		{
+			this.mSnake.grow();
+			this.mgrow=this.mgrow-1;
 		}
 	}
 
